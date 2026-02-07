@@ -1,8 +1,41 @@
-name: GitHub Actions Demo
-run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
-on: [push]
+name: Terraform CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+
 jobs:
-  Explore-GitHub-Actions:
+  terraform:
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./terraform   # 👈 change if needed
+
     steps:
-      - run: ls -la
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6   # or whatever you use
+
+      - name: Terraform fmt
+        run: terraform fmt -check
+
+      - name: Terraform init
+        run: terraform init
+
+      - name: Terraform validate
+        run: terraform validate
+
+      - name: Terraform plan
+        run: terraform plan
+
+      # 🚨 Only apply on main branch
+      - name: Terraform apply
+        if: github.ref == 'refs/heads/main'
+        run: terraform apply -auto-approve
